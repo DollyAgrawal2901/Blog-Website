@@ -1,4 +1,4 @@
-import logo from '../imgs/book.png';
+import logo from '../imgs/book.png'; // Assuming the logo file you want to use
 import { Link, Outlet } from 'react-router-dom';
 import { useState } from 'react';
 
@@ -7,16 +7,21 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="flex items-center justify-between py-2 bg-black text-white shadow-md">
-        {/* Logo Section */}
-        <Link to="/" className="text-white">
-          <img src={logo} alt="Logo" className="h-[12px] md:h-[50px]" />
+      <nav className="flex items-center justify-between py-1 bg-[#175c61] text-white shadow-md">
+        {/* Logo and "Thinkker" Text Section */}
+        <Link to="/" className="flex items-center space-x-2">
+          <img 
+            src={logo} 
+            alt="Logo" 
+            className="h-[50px] md:h-[60px] object-contain" 
+            style={{ maxWidth: '50px' }} // Adjust as needed
+          />
+          <span className="text-2xl font-semibold text-green-200">Thinkker</span>
         </Link>
 
         {/* Navigation Links (with Write) */}
         <div className="flex space-x-4">
           <Link to="/" className="hover:text-gray-300">Home</Link>
-          {/* Write Link */}
           <Link to="/editor" className="flex items-center space-x-1 hover:text-gray-300">
             <i className="text-xl">✍️</i>
             <p>Write</p>
@@ -34,7 +39,7 @@ export default function Navbar() {
         </div>
 
         {/* Sign In and Sign Up Section */}
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-6 mr-4">
           <Link to="/signin" className="px-4 py-1 border border-white rounded-full hover:bg-gray-700 transition-colors">
             Sign In
           </Link>
