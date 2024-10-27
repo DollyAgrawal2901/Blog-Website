@@ -92,7 +92,7 @@ export default function UserAuthForm({ type }) {
             if (type === 'sign-up') {
               navigate('/signin'); // Redirect to sign-in page after successful sign-up
             } else {
-              navigate('/dashboard'); // Redirect to dashboard after successful sign-in
+              navigate('/editor'); // Redirect to dashboard after successful sign-in
             }
           }
         })
@@ -145,7 +145,7 @@ export default function UserAuthForm({ type }) {
           />
           <button
             type="button"
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
+            className="absolute right-3 top-[53px] transform -translate-y-1/2 cursor-pointer"
             onClick={() => setShowPassword(!showPassword)}
           >
             {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -165,7 +165,7 @@ export default function UserAuthForm({ type }) {
             />
             <button
               type="button"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
+              className="absolute right-3 top-[53px] transform -translate-y-1/2 cursor-pointer"
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             >
               {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
