@@ -1,13 +1,32 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import InputBox from '../components/input.component'; // Ensure this is the correct path
 import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Import eye icons
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import toastify CSS
 import { useNavigate } from 'react-router-dom'; // Import useNavigate hook for redirection
+import { UserContext } from '../App';
+import { storeInSession } from '../common/session';
 
 export default function UserAuthForm({ type }) {
   const authForm = useRef();
   const navigate = useNavigate(); // Initialize the useNavigate hook for navigation
+
+  let { userAuth: { access_token}, setUserAuth} = useContext(UserContext)
+
+  console.log(access_token)
+
+  const userAuthThroughServer = (serverRoute, formData)=> {
+
+    axios.post(import.meta.env.VITE_SERVER_DOMAIN +serverRoute,formData)
+    .then(({data}) => {
+      storeInSession("user", JSON.stringify(data))
+      setUserAuth(data)
+
+    })
+    .catch(({response})=> {
+      toast.error(response.data.error)
+    })
+  }
 
   // State for form inputs, error messages, and password visibility
   const [formData, setFormData] = useState({
@@ -103,6 +122,8 @@ export default function UserAuthForm({ type }) {
     };
 
   return (
+    access_token ? 
+    <Navigate to='/'/> :
     <>
       <ToastContainer />
       <section className="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-50 to-purple-200">
