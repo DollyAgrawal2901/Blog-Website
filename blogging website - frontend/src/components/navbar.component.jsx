@@ -1,9 +1,27 @@
 import logo from '../imgs/book.png'; // Assuming the logo file you want to use
 import { Link, Outlet } from 'react-router-dom';
-import { useState } from 'react';
+import { useContext, useState } from 'react';
+import { UserContext } from '../App';
+import UserNavigationPanel from './user-navigation.component';
 
 export default function Navbar() {
   const [searchBoxVisibility, setSearchBoxVisibility] = useState(false);
+
+  const [ userNavPanel, setUserNavPanel ] = useState(false)
+
+  const { userAuth, userAuth: { access_token, profile_img
+  }} = useContext(UserContext)
+
+  const handleUserNavPanel = () => {
+    setUserNavPanel(currentVal => !currentVal)
+  }
+
+  const handleBlur = () => {
+    setTimeout(()=> {
+      setUserNavPanel(false)
+    },200)
+    
+  }
 
   return (
     <>
@@ -38,7 +56,28 @@ export default function Navbar() {
           <i className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">🔍</i>
         </div>
 
-        {/* Sign In and Sign Up Section */}
+        {
+          access_token ? 
+          <>
+          <Link to="/dashboard/notification" >
+          <button className='w-12 h-12 rounded-full'>
+            <i className="fi fi-rr-bell text-2xl block mt-1"></i>
+          </button>
+          </Link>
+
+          <div className="relative" onClick={handleUserNavPanel} onBlur={handleBlur} >
+            <button className="w-12 h-12 mt-1">
+              <img src={profile_img} className='w-full h-full object-cover rounded-full' />
+            </button>
+
+            {
+              userNavPanel ? <UserNavigationPanel />  : ""
+            }
+          </div>
+          </>
+          :
+          <>
+            {/* Sign In and Sign Up Section */}
         <div className="flex items-center space-x-6 mr-4">
           <Link to="/signin" className="px-4 py-1 border border-white rounded-full hover:bg-gray-700 transition-colors">
             Sign In
@@ -47,6 +86,10 @@ export default function Navbar() {
             Sign Up
           </Link>
         </div>
+          </>
+        }
+
+        
       </nav>
 
       {/* Content Below Navbar */}
