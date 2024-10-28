@@ -1,36 +1,20 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import InputBox from '../components/input.component'; // Ensure this is the correct path
 import { FaEye, FaEyeSlash } from 'react-icons/fa'; // Import eye icons
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import toastify CSS
-import { useNavigate } from 'react-router-dom'; // Import useNavigate hook for redirection
+import { useNavigate, Navigate } from 'react-router-dom'; // Import useNavigate hook for redirection
 import { UserContext } from '../App';
 import { storeInSession } from '../common/session';
+import axios from 'axios'; // Ensure axios is imported
 
 export default function UserAuthForm({ type }) {
-  const authForm = useRef();
   const navigate = useNavigate(); // Initialize the useNavigate hook for navigation
-
-  let { userAuth: { access_token}, setUserAuth} = useContext(UserContext)
-
-  console.log(access_token)
-
-  const userAuthThroughServer = (serverRoute, formData)=> {
-
-    axios.post(import.meta.env.VITE_SERVER_DOMAIN +serverRoute,formData)
-    .then(({data}) => {
-      storeInSession("user", JSON.stringify(data))
-      setUserAuth(data)
-
-    })
-    .catch(({response})=> {
-      toast.error(response.data.error)
-    })
-  }
-
+  const { userAuth: { access_token }, setUserAuth } = useContext(UserContext);
+  
   // State for form inputs, error messages, and password visibility
   const [formData, setFormData] = useState({
-    fullName: '',
+    fullname: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -52,9 +36,9 @@ export default function UserAuthForm({ type }) {
   };
 
   const validateForm = () => {
-    const { fullName, email, password, confirmPassword } = formData;
+    const { fullname, email, password, confirmPassword } = formData;
 
-    if (type === 'sign-up' && fullName.length < 3) {
+    if (type === 'sign-up' && fullname.length < 3) {
       toast.error("Full name must be at least 3 letters long");
       return false;
     }
@@ -70,7 +54,7 @@ export default function UserAuthForm({ type }) {
       toast.error('Password must be 6 to 20 characters long and contain at least one numeric digit, one uppercase, and one lowercase letter.');
       return false;
     }
-    if (type === 'sign-in' && password !== confirmPassword) {
+    if (type === 'sign-up' && password !== confirmPassword) {
       toast.error("Passwords do not match");
       return false;
     }
@@ -78,52 +62,45 @@ export default function UserAuthForm({ type }) {
     return true;
   };
 
-    // Function to handle form submission
-    const handleSubmit = (e) => {
-      e.preventDefault();
-  
-      // Validate form before making a request
-      if (!validateForm()) {
-        return;
-      }
-  
-      const url = type === 'sign-in' ? 'http://localhost:3000/signin' : 'http://localhost:3000/signup';
-  
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          fullname: formData.fullName,
-          email: formData.email,
-          password: formData.password,
-        }),
+  // Function to handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    // Validate form before making a request
+    if (!validateForm()) {
+      return;
+    }
+
+    const url = type === 'sign-in' ? '/signin' : '/signup'; // Adjusted URL for the fetch request
+    userAuthThroughServer(url, {
+      fullname: type === 'sign-up' ? formData.fullname : undefined, // Include fullname only for sign-up
+      email: formData.email,
+      password: formData.password,
+    });
+  };
+
+  const userAuthThroughServer = (serverRoute, formData) => {
+    axios.post(import.meta.env.VITE_SERVER_DOMAIN + serverRoute, formData)
+      .then(({ data }) => {
+        storeInSession("user", JSON.stringify(data));
+        setUserAuth(data);
+        toast.success(type === 'sign-in' ? 'Signed in successfully!' : 'Signed up successfully!');
+        
+        // Redirect after successful sign-up or sign-in
+        if (type === 'sign-up') {
+          navigate('/signin'); // Redirect to sign-in page after successful sign-up
+        } else {
+          navigate('/editor'); // Redirect to dashboard after successful sign-in
+        }
       })
-        .then((response) => response.json())
-        .then((data) => {
-          if (data.error) {
-            toast.error(data.error);
-          } else {
-            toast.success(type === 'sign-in' ? 'Signed in successfully!' : 'Signed up successfully!');
-  
-            // Redirect after successful sign-up or sign-in
-            if (type === 'sign-up') {
-              navigate('/signin'); // Redirect to sign-in page after successful sign-up
-            } else {
-              navigate('/editor'); // Redirect to dashboard after successful sign-in
-            }
-          }
-        })
-        .catch((error) => {
-          console.error('Error:', error);
-          toast.error('An error occurred. Please try again.');
-        });
-    };
+      .catch(({ response }) => {
+        toast.error(response?.data?.error || 'An error occurred. Please try again.'); // Improved error handling
+      });
+  };
 
   return (
     access_token ? 
-    <Navigate to='/'/> :
+    <Navigate to='/' /> :
     <>
       <ToastContainer />
       <section className="flex items-center justify-center min-h-screen bg-gradient-to-r from-purple-50 to-purple-200">
@@ -133,13 +110,13 @@ export default function UserAuthForm({ type }) {
           </h1>
 
           {/* Full Name input (only for sign-up) */}
-          {type !== 'sign-in' && (
+          {type === 'sign-up' && (
             <InputBox
               label="Full Name"
               type="text"
-              id="fullName"
+              id="fullname"
               placeholder="John Doe"
-              value={formData.fullName}
+              value={formData.fullname}
               onChange={handleChange}
             />
           )}
@@ -155,44 +132,44 @@ export default function UserAuthForm({ type }) {
           />
 
           {/* Password input for both sign-in and sign-up */}
-        <div className="relative">
-          <InputBox
-            label="Password"
-            type={showPassword ? 'text' : 'password'}
-            id="password"
-            placeholder="********"
-            value={formData.password}
-            onChange={handleChange}
-          />
-          <button
-            type="button"
-            className="absolute right-3 top-[53px] transform -translate-y-1/2 cursor-pointer"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <FaEyeSlash /> : <FaEye />}
-          </button>
-        </div>
-
-          {/* Confirm password field only for sign-up */}
-        {type !== 'sign-in' && (
           <div className="relative">
             <InputBox
-              label="Confirm Password"
-              type={showConfirmPassword ? 'text' : 'password'}
-              id="confirmPassword"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              id="password"
               placeholder="********"
-              value={formData.confirmPassword}
+              value={formData.password}
               onChange={handleChange}
             />
             <button
               type="button"
               className="absolute right-3 top-[53px] transform -translate-y-1/2 cursor-pointer"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              onClick={() => setShowPassword(!showPassword)}
             >
-              {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
             </button>
           </div>
-        )}
+
+          {/* Confirm password field only for sign-up */}
+          {type === 'sign-up' && (
+            <div className="relative">
+              <InputBox
+                label="Confirm Password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                id="confirmPassword"
+                placeholder="********"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-[53px] transform -translate-y-1/2 cursor-pointer"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
+              </button>
+            </div>
+          )}
 
           {/* Submit Button */}
           <div className="mt-6">
